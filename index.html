@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pincesa email</title>
+  <style>
+    :root {
+      --purple-dark: #1a0a2e;
+      --purple-mid: #3d1a5c;
+      --purple-light: #6b2d7b;
+      --text-main: #f8f0ff;
+      --accent: #e8a0ff;
+      --pink: #ff9eb0;
+      --gradient-btn: linear-gradient(135deg, #c44dff, #ff6eb4);
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-mid) 50%, var(--purple-light) 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    body.logged-in {
+      display: block;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* ── Login ── */
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .login-card h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 0.35rem;
+    }
+
+    .login-card .subtitle {
+      text-align: center;
+      font-size: 0.875rem;
+      opacity: 0.75;
+      margin-bottom: 1.75rem;
+    }
+
+    .field-group { margin-bottom: 1rem; }
+
+    .field-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+      opacity: 0.9;
+    }
+
+    .field-group label.wrong-nickname { color: var(--pink); }
+
+    .field-group input {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      background: rgba(0, 0, 0, 0.25);
+      color: #fff;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232, 160, 255, 0.25);
+    }
+
+    .field-group input:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      text-decoration: line-through;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .field-group input.correct-field {
+      border-color: rgba(232, 160, 255, 0.4);
+    }
+
+    .password-wrapper { position: relative; }
+    .password-wrapper input { padding-right: 2.75rem; }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: rgba(248, 240, 255, 0.75);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.35rem;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .toggle-password:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      opacity: 0.65;
+      margin-top: 0.3rem;
+      font-style: italic;
+    }
+
+    .error-msg {
+      display: none;
+      background: rgba(255, 80, 100, 0.2);
+      border: 1px solid rgba(255, 120, 140, 0.5);
+      color: #ffc8d0;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .error-msg.visible { display: block; }
+
+    button[type="submit"] {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: var(--gradient-btn);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    button[type="submit"]:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(196, 77, 255, 0.4);
+    }
+
+    body.logged-in #login-screen { display: none; }
+
+    /* ── Inbox ── */
+    #inbox-screen {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    body.logged-in #inbox-screen { display: flex; }
+
+    .inbox-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.25rem;
+      background: rgba(0, 0, 0, 0.35);
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
+    .inbox-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .inbox-brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 0.5rem;
+      background: var(--gradient-btn);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .inbox-brand h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .inbox-brand span {
+      font-size: 0.75rem;
+      opacity: 0.65;
+      display: block;
+    }
+
+    .inbox-user {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .inbox-user strong { color: var(--accent); }
+
+    .notif-bell {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(196, 77, 255, 0.2);
+      border: 1px solid rgba(232, 160, 255, 0.35);
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .notif-bell:hover {
+      transform: scale(1.08);
+      background: rgba(196, 77, 255, 0.35);
+    }
+
+    .notif-bell.read .notif-badge { display: none; }
+
+    .notif-bell .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      background: var(--gradient-btn);
+      border-radius: 50%;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      border: 2px solid var(--purple-dark);
+      line-height: 1;
+    }
+
+    .inbox-layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      height: calc(100vh - 57px);
+    }
+
+    .inbox-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: rgba(0, 0, 0, 0.25);
+      border-right: 1px solid var(--glass-border);
+      padding: 1rem 0.75rem;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.5;
+      padding: 0.5rem 0.75rem 0.35rem;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+
+    .sidebar-item:hover { background: rgba(255, 255, 255, 0.08); }
+
+    .sidebar-item.active {
+      background: rgba(196, 77, 255, 0.25);
+      border: 1px solid rgba(232, 160, 255, 0.3);
+    }
+
+    .sidebar-item .badge {
+      margin-left: auto;
+      background: var(--gradient-btn);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      min-width: 1.25rem;
+      text-align: center;
+    }
+
+    .sidebar-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .thumb-vet { background: linear-gradient(135deg, #2d6a4f, #95d5b2); }
+    .thumb-car { background: linear-gradient(135deg, #1a1a2e, #e94560); }
+    .thumb-handwritten { background: linear-gradient(135deg, #d4a574, #f5e6d3); }
+    .thumb-illuminate { background: linear-gradient(135deg, #ff6b35, #f7c59f, #2ec4b6); }
+    .thumb-sm { background: linear-gradient(135deg, #c1121f, #fdf0d5); }
+    .thumb-wonder { background: linear-gradient(135deg, #4cc9f0, #7209b7, #3a0ca3); }
+
+    .inbox-main {
+      flex: 1;
+      display: flex;
+      min-width: 0;
+    }
+
+    .email-list {
+      width: 340px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--glass-border);
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .email-list-header {
+      padding: 0.85rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .email-list-header span { opacity: 0.6; font-weight: 400; }
+
+    .email-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .email-item:hover { background: rgba(255, 255, 255, 0.06); }
+
+    .email-item.active {
+      background: rgba(196, 77, 255, 0.18);
+      border-left: 3px solid var(--accent);
+    }
+
+    .email-item.unread .email-subject { font-weight: 700; }
+
+    .email-item-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 0.5rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .email-item-body { flex: 1; min-width: 0; }
+
+    .email-from {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-bottom: 0.15rem;
+    }
+
+    .email-subject {
+      font-size: 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+
+    .email-preview {
+      font-size: 0.75rem;
+      opacity: 0.55;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .email-date {
+      font-size: 0.65rem;
+      opacity: 0.45;
+      flex-shrink: 0;
+      align-self: flex-start;
+    }
+
+    .email-reader {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      background: var(--glass);
+    }
+
+    .email-reader-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      opacity: 0.45;
+      text-align: center;
+      gap: 0.5rem;
+    }
+
+    .email-reader-empty .icon { font-size: 3rem; }
+
+    .reader-header {
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .reader-category {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.65rem;
+    }
+
+    .cat-vet { background: rgba(45, 106, 79, 0.5); color: #b7e4c7; }
+    .cat-car { background: rgba(233, 69, 96, 0.35); color: #ffc8d0; }
+    .cat-shawn { background: rgba(196, 77, 255, 0.35); color: var(--accent); }
+    .cat-heart { background: rgba(255, 110, 180, 0.35); color: #ffc8e0; }
+
+    .attachments-section {
+      margin: 1.25rem 0 1.5rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 0.75rem;
+    }
+
+    .attachments-section h4 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .attachments-section .attach-hint {
+      font-size: 0.75rem;
+      opacity: 0.55;
+      margin-bottom: 0.85rem;
+    }
+
+    .attachments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.65rem;
+    }
+
+    .attachment-item {
+      border: 1px solid var(--glass-border);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .attachment-item:hover {
+      transform: scale(1.03);
+      border-color: var(--accent);
+    }
+
+    .attachment-item img {
+      width: 100%;
+      aspect-ratio: 9/16;
+      object-fit: cover;
+      display: block;
+    }
+
+    .attachment-item span {
+      display: block;
+      font-size: 0.65rem;
+      padding: 0.35rem 0.4rem;
+      text-align: center;
+      opacity: 0.75;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .reader-body.heart-letter p { margin-bottom: 1rem; }
+
+    .reader-body.heart-letter .emphasis {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0, 0, 0, 0.92);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    #lightbox.open { display: flex; }
+
+    #lightbox img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: var(--gradient-btn);
+      color: #fff;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .lightbox-nav button {
+      border: 1px solid var(--glass-border);
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .lightbox-nav button:hover { background: rgba(196, 77, 255, 0.4); }
+
+    .lightbox-counter {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .reader-header h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+
+    .reader-meta {
+      font-size: 0.8rem;
+      opacity: 0.65;
+    }
+
+    .reader-meta strong { color: var(--accent); opacity: 1; }
+
+    .reader-cover {
+      width: 100%;
+      max-width: 280px;
+      height: 140px;
+      border-radius: 0.75rem;
+      margin: 1rem 0 1.25rem;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--glass-border);
+    }
+
+    .reader-body {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      opacity: 0.9;
+    }
+
+    .reader-body p { margin-bottom: 0.85rem; }
+
+    .reader-body .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .reader-signature {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--glass-border);
+      font-style: italic;
+      opacity: 0.75;
+    }
+
+    .decor-strip {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .decor-chip {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+    }
+
+    @media (max-width: 900px) {
+      .inbox-sidebar { display: none; }
+      .email-list { width: 100%; }
+      .email-reader {
+        display: none;
+        position: fixed;
+        inset: 57px 0 0 0;
+        z-index: 10;
+      }
+      .email-reader.open { display: block; }
+      .reader-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-bottom: 1rem;
+        padding: 0.4rem 0.75rem;
+        border: 1px solid var(--glass-border);
+        border-radius: 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        color: var(--text-main);
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+    }
+
+    @media (min-width: 901px) {
+      .reader-back { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="login-screen">
+    <div class="login-card">
+      <h1>BEM VINDA PINCESA!</h1>
+      <p class="subtitle">Fiz isso pra tentar te animar um pouquinho<br><br>( Sua obrição e passar dessa tela de login rs )</p>
+
+      <div id="error-msg" class="error-msg" role="alert"></div>
+
+      <form id="login-form" novalidate>
+        <div class="field-group">
+          <label class="wrong-nickname" for="user-manoela">Usuário</label>
+          <input type="text" id="user-manoela" name="user-manoela" value="Manoela" disabled aria-disabled="true">
+        </div>
+
+        <div class="field-group">
+          <label class="wrong-nickname" for="user-manu">Usuário</label>
+          <input type="text" id="user-manu" name="user-manu" value="Manu" disabled aria-disabled="true">
+        </div>
+
+        <div class="field-group">
+          <label class="wrong-nickname" for="user-meu-bem">Usuário</label>
+          <input type="text" id="user-meu-bem" name="user-meu-bem" value="meu bem" disabled aria-disabled="true">
+        </div>
+
+        <div class="field-group">
+          <label for="username">Usuário</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="correct-field"
+            placeholder="Digite seu apelido verdadeiro..."
+            autocomplete="username"
+            required
+          >
+          <p class="hint">Dica: Apelido que goste que eu te chame</p>
+        </div>
+
+        <div class="field-group">
+          <label for="password">Senha</label>
+          <div class="password-wrapper">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            >
+            <button
+              type="button"
+              id="toggle-password"
+              class="toggle-password"
+              aria-label="Mostrar senha"
+              title="Mostrar senha"
+            >Ver</button>
+          </div>
+          <p class="hint">Dica: apelido carinhoso para Channel</p>
+        </div>
+
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="inbox-screen" aria-hidden="true">
+    <header class="inbox-topbar">
+      <div class="inbox-brand">
+        <div class="inbox-brand-icon">✉</div>
+        <div>
+          <h2>Pincesa email</h2>
+          <span>Só coisas boas na sua caixa de mensagem</span>
+        </div>
+      </div>
+      <div class="inbox-user">
+        <div class="notif-bell" id="notif-bell" title="Você tem uma notificação!" aria-label="Abrir notificação">
+          🔔
+          <span class="notif-badge">!</span>
+        </div>
+        <span>Logada como minha <strong>Pincesa</strong> 💜</span>
+      </div>
+    </header>
+
+    <div class="inbox-layout">
+      <aside class="inbox-sidebar">
+        <p class="sidebar-section">Pastas</p>
+        <button class="sidebar-item active" data-filter="all">
+          📥 Caixa de entrada <span class="badge" id="badge-all">9</span>
+        </button>
+
+        <p class="sidebar-section">Veterinária 🐾</p>
+        <button class="sidebar-item" data-filter="vet">
+          <span class="sidebar-thumb thumb-vet"></span>
+          Futura Dra. Pincesa
+          <span class="badge">3</span>
+        </button>
+
+        <p class="sidebar-section">Carros 🚗</p>
+        <button class="sidebar-item" data-filter="car">
+          <span class="sidebar-thumb thumb-car"></span>
+          Na estrada com você
+          <span class="badge">2</span>
+        </button>
+
+        <p class="sidebar-section">Shawn Mendes 🎵</p>
+        <button class="sidebar-item" data-filter="shawn">
+          <span class="sidebar-thumb thumb-handwritten"></span>
+          Handwritten
+        </button>
+        <button class="sidebar-item" data-filter="shawn">
+          <span class="sidebar-thumb thumb-illuminate"></span>
+          Illuminate
+        </button>
+        <button class="sidebar-item" data-filter="shawn">
+          <span class="sidebar-thumb thumb-sm"></span>
+          Shawn Mendes
+        </button>
+        <button class="sidebar-item" data-filter="shawn">
+          <span class="sidebar-thumb thumb-wonder"></span>
+          Wonder
+          <span class="badge">3</span>
+        </button>
+      </aside>
+
+      <div class="inbox-main">
+        <div class="email-list">
+          <div class="email-list-header">
+            <span id="list-title">Caixa de entrada</span>
+            <span id="list-count">9 mensagens</span>
+          </div>
+          <div id="email-list-items"></div>
+        </div>
+
+        <div class="email-reader" id="email-reader">
+          <div class="email-reader-empty" id="reader-empty">
+            <div class="icon">💌</div>
+            <p>Selecione um e-mail pra ler</p>
+          </div>
+          <div id="reader-content" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Fechar">✕</button>
+    <img id="lightbox-img" src="" alt="Print da ligação">
+    <div class="lightbox-nav">
+      <button type="button" id="lightbox-prev">← Anterior</button>
+      <span class="lightbox-counter" id="lightbox-counter"></span>
+      <button type="button" id="lightbox-next">Próxima →</button>
+    </div>
+  </div>
+
+  <script>
+    const VALID_USERNAMES = ["princesa", "pincesa"];
+    const CORRECT_PASSWORD = "peleleca";
+
+    const CALL_ATTACHMENTS = [
+      { src: "assets/ligacao-1.png", label: "21 de junho" },
+      { src: "assets/ligacao-2.png", label: "23 de junho" },
+      { src: "assets/ligacao-3.png", label: "23 de junho · 1h20" },
+      { src: "assets/ligacao-4.png", label: "24 de junho" },
+      { src: "assets/ligacao-5.png", label: "26 de junho" },
+      { src: "assets/ligacao-6.png", label: "26 de junho · 1h01" },
+      { src: "assets/ligacao-7.png", label: "Hoje · 2h55" },
+      { src: "assets/ligacao-8.png", label: "Ontem · 8h35" }
+    ];
+
+    const NOTIFICATION_EMAIL = {
+      id: "notif",
+      category: "heart",
+      catLabel: "Notificação especial",
+      catClass: "cat-heart",
+      thumbClass: "thumb-wonder",
+      emoji: "💜",
+      from: "Alguém em Brasília <coracao@verdade.com>",
+      subject: "Escrito 99% pelo o coração e 1% pela razão",
+      preview: "Sabe o que essas ligações tem em comum?...",
+      date: "Hoje",
+      unread: true,
+      isNotification: true
+    };
+
+    const EMAILS = [
+      {
+        id: 1,
+        category: "vet",
+        catLabel: "Veterinária",
+        catClass: "cat-vet",
+        thumbClass: "thumb-vet",
+        emoji: "🐾",
+        from: "Channel <channel@casa.com>",
+        subject: "Receita: um abraço da Pincesa, 3x ao dia",
+        preview: "Não precisa entender tudo agora, só descansa...",
+        date: "Hoje",
+        unread: true,
+        coverClass: "thumb-vet",
+        body: [
+          "Oi, minha <span class='highlight'>Pincesa</span>.",
+          "Sei que sua cabeça tá confusa agora — e tudo bem não ter todas as respostas hoje. Nem os bichinhos sabem o que vão fazer da vida quando nascem, e mesmo assim crescem fortes.",
+          "Você cuida tão bem dos animais... então deixa eu cuidar de você um pouquinho agora. Respira. Come. Descansa. O resto pode esperar.",
+          "Assinado: Channel, seu fã número 1 (e paciente emocional oficial) 🐾"
+        ],
+        chips: ["🐾 Channel", "💜 Descansa", "🫂 Abraço"]
+      },
+      {
+        id: 2,
+        category: "vet",
+        catLabel: "Veterinária",
+        catClass: "cat-vet",
+        thumbClass: "thumb-vet",
+        emoji: "🐱",
+        from: "Todos os bichinhos do mundo <amor@vet.br>",
+        subject: "Você é a pessoa que a gente escolheria de Dra.",
+        preview: "Mesmo nos dias difíceis, você continua sendo incrível...",
+        date: "Hoje",
+        unread: true,
+        coverClass: "thumb-vet",
+        body: [
+          "<span class='highlight'>Pincesa</span>, queria te lembrar de uma coisa:",
+          "O seu amor por animais não some quando você tá triste ou confusa. Ele continua aí — e é uma das coisas mais bonitas em você.",
+          "Você vai ser uma veterinária incrível não porque tá feliz o tempo todo, mas porque tem um coração enorme. E coração assim não desiste fácil.",
+          "Hoje, seja gentil com você do mesmo jeito que seria com um bichinho assustado. Com paciência. Com carinho. Sem pressa. 🐶🐱"
+        ],
+        chips: ["🩺 Seu sonho", "❤️ Coração enorme", "🐾 Paciência"]
+      },
+      {
+        id: 3,
+        category: "vet",
+        catLabel: "Veterinária",
+        catClass: "cat-vet",
+        thumbClass: "thumb-vet",
+        emoji: "🐕",
+        from: "Consultório do Coração <carinho@vet.br>",
+        subject: "Diagnóstico: Pincesa precisa de afeto (não é grave)",
+        preview: "Humor à parte — você merece se sentir bem...",
+        date: "Ontem",
+        unread: false,
+        coverClass: "thumb-vet",
+        body: [
+          "Laudo médico-veterinário-humano:",
+          "Paciente: <span class='highlight'>Pincesa</span>. Sintoma: cabeça confusa. Causa provável: vida sendo vida.",
+          "Tratamento recomendado: conversa boa, risada boba, música alta, um passeio de carro e alguém dizendo que tá tudo bem sentir o que você tá sentindo.",
+          "Prognóstico: excelente. Porque você é muito mais forte do que imagina — mesmo quando não parece. 😊🐾"
+        ],
+        chips: ["😂 Humor", "💜 Força", "🩺 Cuidado"]
+      },
+      {
+        id: 4,
+        category: "car",
+        catLabel: "Carros",
+        catClass: "cat-car",
+        thumbClass: "thumb-car",
+        emoji: "🚗",
+        from: "Estrada & Companhia <viagem@road.com>",
+        subject: "Quando a cabeça pesar, acelera a playlist",
+        preview: "Janela aberta, vento no rosto, ninguém te apressando...",
+        date: "Hoje",
+        unread: true,
+        coverClass: "thumb-car",
+        body: [
+          "Sabe o que eu imagino quando você tá mal?",
+          "Você no carro, janela aberta, música no volume que só você ousa colocar, estrada pela frente e ninguém te cobrando nada.",
+          "<span class='highlight'>Pincesa</span>, às vezes a gente não precisa resolver tudo — só precisa mudar de cenário por um instante. E você manda muito bem nisso.",
+          "Quando quiser, a gente põe um som bom e deixa o vento levar um pouco da confusão embora. Eu vou contigo. 🚗💨"
+        ],
+        chips: ["🚗 Liberdade", "🎶 Música alta", "🌬️ Alívio"]
+      },
+      {
+        id: 5,
+        category: "car",
+        catLabel: "Carros",
+        catClass: "cat-car",
+        thumbClass: "thumb-car",
+        emoji: "🏎️",
+        from: "Velocidade com Carinho <rapido@love.com>",
+        subject: "Tá tudo bem frear quando precisar",
+        preview: "Velocidade é sua paixão — mas parar também é força...",
+        date: "Hoje",
+        unread: true,
+        coverClass: "thumb-car",
+        body: [
+          "Você ama velocidade, adrenalina, a sensação de ir — e eu amo isso em você.",
+          "Mas escuta: frear não é fraqueza. Parar no acostamento quando a cabeça tá cheia é a coisa mais inteligente que alguém pode fazer.",
+          "<span class='highlight'>Pincesa</span>, você não precisa estar acelerando em tudo o tempo todo. Pode só existir. Pode só respirar. Pode só ser.",
+          "E quando quiser acelerar de novo — eu sei que você vai. Porque você é assim: intensa, linda e cheia de vida. 🏎️💜"
+        ],
+        chips: ["🏎️ Intensidade", "🛑 Pausa", "💪 Força"]
+      },
+      {
+        id: 6,
+        category: "shawn",
+        catLabel: "Shawn Mendes · Handwritten",
+        catClass: "cat-shawn",
+        thumbClass: "thumb-handwritten",
+        emoji: "✍️",
+        from: "Quem te admira <sempre@aqui.com>",
+        subject: "Coloca o fone e deixa o mundo esperar",
+        preview: "Uma música boa às vezes diz o que a gente não consegue...",
+        date: "Hoje",
+        unread: true,
+        coverClass: "thumb-handwritten",
+        body: [
+          "Quando não sei o que falar, penso em música — porque sei que é o seu lugar seguro.",
+          "Coloca aquela do Shawn que bate certo no seu peito. Deixa a letra te abraçar. Chora se precisar. Canta alto se quiser.",
+          "<span class='highlight'>Pincesa</span>, você não precisa fingir que tá bem. Mas saiba que tem alguém aqui torcendo por você — em silêncio, em música, em tudo.",
+          "E quando a confusão passar (porque vai passar), eu ainda vou estar aqui. Sempre. 🎵💜"
+        ],
+        chips: ["🎵 Shawn Mendes", "🎧 Seu refúgio", "💜 Sempre aqui"]
+      },
+      {
+        id: 7,
+        category: "shawn",
+        catLabel: "Shawn Mendes · Illuminate",
+        catClass: "cat-shawn",
+        thumbClass: "thumb-illuminate",
+        emoji: "🌅",
+        from: "Illuminate Your Day <luz@music.com>",
+        subject: "Mesmo nublado, você ainda ilumina",
+        preview: "Nos dias difíceis você brilha do mesmo jeito...",
+        date: "Ontem",
+        unread: true,
+        coverClass: "thumb-illuminate",
+        body: [
+          "Tem dia que parece que tudo tá escuro e confuso por dentro. Eu sei.",
+          "Mas eu preciso que você saiba: <span class='highlight'>você ilumina</span>. Não só quando tá feliz — especialmente quando não tá.",
+          "Sua risada, seu jeito, sua energia, o jeito que você ama os bichos, os carros, a música... isso não some porque você tá mal hoje.",
+          "Você é luz, Pincesa. Mesmo quando não consegue enxergar isso. Eu enxergo por você. 🌅✨"
+        ],
+        chips: ["🌅 Luz", "😊 Seu jeito", "💜 Verdade"]
+      },
+      {
+        id: 8,
+        category: "shawn",
+        catLabel: "Shawn Mendes · Wonder",
+        catClass: "cat-shawn",
+        thumbClass: "thumb-wonder",
+        emoji: "✨",
+        from: "Wonder World <wonder@music.com>",
+        subject: "Eu fiz isso porque você importa pra mim",
+        preview: "Não sei resolver tudo, mas queria te fazer sorrir...",
+        date: "Hoje",
+        unread: true,
+        coverClass: "thumb-wonder",
+        body: [
+          "Essa caixa de e-mails inteira? Fui eu que fiz. Porque não sabia bem como te ajudar e queria tentar de um jeito diferente.",
+          "<span class='highlight'>Pincesa</span>, eu gosto muito de você. Muito mesmo. E ver você chateada, confusa, com a cabeça cheia... dói em mim também.",
+          "Não tenho todas as respostas. Mas tenho carinho, tenho piada ruim, tenho música, tenho paciência e tenho vontade de ficar do seu lado.",
+          "Você é wonder. Você é especial. E merece se sentir bem — hoje, amanhã e sempre. Obrigado por existir. ✨💜"
+        ],
+        chips: ["✨ Você importa", "💜 Carinho", "🫂 De verdade"]
+      }
+    ];
+
+    function normalize(value) {
+      return value.trim().toLowerCase();
+    }
+
+    const form = document.getElementById("login-form");
+    const errorMsg = document.getElementById("error-msg");
+    const inboxScreen = document.getElementById("inbox-screen");
+    const passwordInput = document.getElementById("password");
+    const togglePasswordBtn = document.getElementById("toggle-password");
+    const emailListItems = document.getElementById("email-list-items");
+    const readerEmpty = document.getElementById("reader-empty");
+    const readerContent = document.getElementById("reader-content");
+    const emailReader = document.getElementById("email-reader");
+    const listTitle = document.getElementById("list-title");
+    const listCount = document.getElementById("list-count");
+    const notifBell = document.getElementById("notif-bell");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxCounter = document.getElementById("lightbox-counter");
+
+    let currentFilter = "all";
+    let selectedId = null;
+    let lightboxIndex = 0;
+
+    const FILTER_LABELS = {
+      all: "Caixa de entrada",
+      vet: "Veterinária 🐾",
+      car: "Carros 🚗",
+      shawn: "Shawn Mendes 🎵"
+    };
+
+    togglePasswordBtn.addEventListener("click", function () {
+      const isHidden = passwordInput.type === "password";
+      passwordInput.type = isHidden ? "text" : "password";
+      togglePasswordBtn.textContent = isHidden ? "Ocultar" : "Ver";
+      togglePasswordBtn.setAttribute("aria-label", isHidden ? "Ocultar senha" : "Mostrar senha");
+      togglePasswordBtn.title = isHidden ? "Ocultar senha" : "Mostrar senha";
+    });
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.classList.add("visible");
+    }
+
+    function hideError() {
+      errorMsg.classList.remove("visible");
+      errorMsg.textContent = "";
+    }
+
+    function getFilteredEmails() {
+      if (currentFilter === "all") return [NOTIFICATION_EMAIL].concat(EMAILS);
+      return EMAILS.filter(function (e) { return e.category === currentFilter; });
+    }
+
+    function renderAttachmentsHtml() {
+      return (
+        '<div class="attachments-section">' +
+          '<h4>📎 Anexos (' + CALL_ATTACHMENTS.length + ' prints)</h4>' +
+          '<p class="attach-hint">Clique em cada print pra abrir em tela cheia</p>' +
+          '<div class="attachments-grid">' +
+            CALL_ATTACHMENTS.map(function (att, i) {
+              return (
+                '<div class="attachment-item" data-attach-index="' + i + '" role="button" tabindex="0">' +
+                  '<img src="' + att.src + '" alt="' + att.label + '" loading="lazy">' +
+                  '<span>' + att.label + '</span>' +
+                '</div>'
+              );
+            }).join("") +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    function renderHeartLetterHtml() {
+      return (
+        '<div class="reader-body heart-letter">' +
+          '<p>Sabe o que essas ligações tem em comum?</p>' +
+          '<p>Nada — pq em cada uma eu fui te conhecendo um pouquinho mais. E cada vez que fui te conhecendo um pouquinho mais, de forma verdadeira e descontraída, fui querendo me aproximar e me aproximar. Hj eu tenho um carinho, uma forma diferente de me sentir bem, confortável e leve — eu ser eu mesmo.</p>' +
+          '<p>É engraçado te ouvir falar com suas gírias, e legal ver vc curiosa com as coisas que eu sei, e tão linda suas sardas e seus olhos — não sei explicar o encanto.</p>' +
+          '<p>De forma prática, o que eu consigo dizer pra fazer sobre o que vc tá sentindo e que vai dar certo: no final tem que dar certo... Não sei como está seu coração e sua cabeça, mas vc tem uma pessoa aqui em Brasília torcendo pra vc vencer suas batalhas, seus sonhos. Eu quero que vc conte cmg pra tudo — <span class="highlight">TUDO MESMO</span> — sonhos, medos, desejos, realizações e assim vai. É difícil pra mim estar aqui e vc estar aí, mas isso que eu fiz eu fiz pensando em te deixar um poquinho melhor. E se eu conseguir ter tirado pelo menos um pensamento bom, um sorriso, já estou bem.</p>' +
+          '<p>E em relação a sentimento, só peço que seja sincera cmg. Não precisa ter medo de como vai falar pra mim — só fala, de verdade só fala. Vou me sentir bem que vc não vai estar carregando um peso de guardar só pra vc esse pensamento. Isso não só em relação a mim, tá? Eu digo a qualquer pessoa, ou até mesmo a tudo. A gente não sabe o dia de amanhã, mas eu quero estar aqui, com vc...</p>' +
+          '<p>Desculpa, eu não guardo o que sinto ou penso — sou 100% verdadeiro e transparente ksksk. Às vezes isso pode incomodar ou apressar! Mas é isso.</p>' +
+          '<p>Quando vc quiser conversar, vou estar aqui. Talvez vc só precise do seu tempinho, mas <span class="emphasis">pfv não some.</span></p>' +
+          '<p class="emphasis">Pfv de verdade. Não some!!!</p>' +
+        '</div>'
+      );
+    }
+
+    function bindAttachmentClicks() {
+      readerContent.querySelectorAll(".attachment-item").forEach(function (item) {
+        item.addEventListener("click", function () {
+          openLightbox(Number(item.dataset.attachIndex));
+        });
+        item.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openLightbox(Number(item.dataset.attachIndex));
+          }
+        });
+      });
+    }
+
+    function openLightbox(index) {
+      lightboxIndex = index;
+      lightboxImg.src = CALL_ATTACHMENTS[index].src;
+      lightboxCounter.textContent = (index + 1) + " / " + CALL_ATTACHMENTS.length;
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImg.src = "";
+    }
+
+    function lightboxStep(dir) {
+      lightboxIndex = (lightboxIndex + dir + CALL_ATTACHMENTS.length) % CALL_ATTACHMENTS.length;
+      openLightbox(lightboxIndex);
+    }
+
+    document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
+    document.getElementById("lightbox-prev").addEventListener("click", function () { lightboxStep(-1); });
+    document.getElementById("lightbox-next").addEventListener("click", function () { lightboxStep(1); });
+    lightbox.addEventListener("click", function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    function openNotificationEmail() {
+      selectedId = "notif";
+      NOTIFICATION_EMAIL.unread = false;
+      notifBell.classList.add("read");
+      renderEmailList();
+
+      readerEmpty.style.display = "none";
+      readerContent.style.display = "block";
+      emailReader.classList.add("open");
+
+      readerContent.innerHTML =
+        '<button class="reader-back" id="reader-back">← Voltar</button>' +
+        '<div class="reader-header">' +
+          '<span class="reader-category cat-heart">💜 Notificação</span>' +
+          '<h3>' + NOTIFICATION_EMAIL.subject + '</h3>' +
+          '<div class="reader-meta">De: <strong>' + NOTIFICATION_EMAIL.from + '</strong> · ' + NOTIFICATION_EMAIL.date + '</div>' +
+        '</div>' +
+        renderAttachmentsHtml() +
+        renderHeartLetterHtml();
+
+      bindAttachmentClicks();
+
+      const backBtn = document.getElementById("reader-back");
+      if (backBtn) {
+        backBtn.addEventListener("click", function () {
+          emailReader.classList.remove("open");
+        });
+      }
+
+      emailReader.scrollTop = 0;
+    }
+
+    notifBell.addEventListener("click", openNotificationEmail);
+
+    function renderEmailList() {
+      const emails = getFilteredEmails();
+      listTitle.textContent = FILTER_LABELS[currentFilter];
+      listCount.textContent = emails.length + (emails.length === 1 ? " mensagem" : " mensagens");
+
+      emailListItems.innerHTML = emails.map(function (email) {
+        return (
+          '<div class="email-item' + (email.unread ? " unread" : "") + (selectedId === email.id ? " active" : "") + '" data-id="' + email.id + '">' +
+            '<div class="email-item-thumb ' + email.thumbClass + '">' + (email.isNotification ? "!" : email.emoji) + '</div>' +
+            '<div class="email-item-body">' +
+              '<div class="email-from">' + email.from + '</div>' +
+              '<div class="email-subject">' + email.subject + '</div>' +
+              '<div class="email-preview">' + email.preview + '</div>' +
+            '</div>' +
+            '<div class="email-date">' + email.date + '</div>' +
+          '</div>'
+        );
+      }).join("");
+
+      emailListItems.querySelectorAll(".email-item").forEach(function (item) {
+        item.addEventListener("click", function () {
+          const id = item.dataset.id;
+          if (id === "notif") {
+            openNotificationEmail();
+          } else {
+            openEmail(Number(id));
+          }
+        });
+      });
+    }
+
+    function openEmail(id) {
+      const email = EMAILS.find(function (e) { return e.id === id; });
+      if (!email) return;
+
+      selectedId = id;
+      email.unread = false;
+      renderEmailList();
+
+      readerEmpty.style.display = "none";
+      readerContent.style.display = "block";
+      emailReader.classList.add("open");
+
+      readerContent.innerHTML =
+        '<button class="reader-back" id="reader-back">← Voltar</button>' +
+        '<div class="reader-header">' +
+          '<span class="reader-category ' + email.catClass + '">' + email.catLabel + '</span>' +
+          '<h3>' + email.subject + '</h3>' +
+          '<div class="reader-meta">De: <strong>' + email.from + '</strong> · ' + email.date + '</div>' +
+        '</div>' +
+        '<div class="reader-cover ' + email.coverClass + '"></div>' +
+        '<div class="reader-body">' +
+          email.body.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
+        '</div>' +
+        '<div class="decor-strip">' +
+          email.chips.map(function (c) { return '<span class="decor-chip">' + c + '</span>'; }).join("") +
+        '</div>' +
+        '<div class="reader-signature">Com carinho,<br>quem fez isso pra te animar 💜</div>';
+
+      const backBtn = document.getElementById("reader-back");
+      if (backBtn) {
+        backBtn.addEventListener("click", function () {
+          emailReader.classList.remove("open");
+        });
+      }
+    }
+
+    document.querySelectorAll(".sidebar-item").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".sidebar-item").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        selectedId = null;
+        readerEmpty.style.display = "flex";
+        readerContent.style.display = "none";
+        emailReader.classList.remove("open");
+        renderEmailList();
+      });
+    });
+
+    function onLoginSuccess() {
+      document.body.classList.add("logged-in");
+      inboxScreen.setAttribute("aria-hidden", "false");
+      document.title = "Pincesa email";
+      renderEmailList();
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      hideError();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!VALID_USERNAMES.includes(normalize(username))) {
+        showError("Esse não é o apelido certo. Tente de novo, Pincesa!");
+        return;
+      }
+
+      if (normalize(password) !== CORRECT_PASSWORD) {
+        showError("Senha incorreta. Lembra da dica sobre o Channel?");
+        return;
+      }
+
+      onLoginSuccess();
+    });
+  </script>
+</body>
+</html>

@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5">
+  <meta name="theme-color" content="#1a0a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Pincesa email</title>
   <style>
     :root {
@@ -19,21 +22,38 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html {
+      -webkit-text-size-adjust: 100%;
+      height: 100%;
+    }
+
     body {
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
+      min-height: 100dvh;
       background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-mid) 50%, var(--purple-light) 100%);
+      background-attachment: fixed;
       color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body.logged-in {
       display: block;
       padding: 0;
       min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    button, .email-item, .attachment-item, .notif-bell {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* ── Login ── */
@@ -150,7 +170,8 @@
     button[type="submit"] {
       width: 100%;
       margin-top: 0.5rem;
-      padding: 0.75rem;
+      padding: 0.85rem;
+      min-height: 48px;
       border: none;
       border-radius: 0.5rem;
       background: var(--gradient-btn);
@@ -172,19 +193,32 @@
     #inbox-screen {
       display: none;
       min-height: 100vh;
+      min-height: 100dvh;
       flex-direction: column;
     }
 
-    body.logged-in #inbox-screen { display: flex; }
+    body.logged-in #inbox-screen {
+      display: flex;
+      height: 100dvh;
+      max-height: 100dvh;
+    }
 
     .inbox-topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.85rem 1.25rem;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      padding: 0.75rem 1rem;
+      padding-top: max(0.75rem, env(safe-area-inset-top));
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
       background: rgba(0, 0, 0, 0.35);
       border-bottom: 1px solid var(--glass-border);
       backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
 
     .inbox-brand {
@@ -225,10 +259,42 @@
 
     .inbox-user strong { color: var(--accent); }
 
+    .mobile-filters {
+      display: none;
+      gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--glass-border);
+      flex-shrink: 0;
+    }
+
+    .mobile-filters::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      flex-shrink: 0;
+      padding: 0.45rem 0.85rem;
+      min-height: 36px;
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .filter-chip.active {
+      background: rgba(196, 77, 255, 0.3);
+      border-color: rgba(232, 160, 255, 0.45);
+    }
+
     .notif-bell {
       position: relative;
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -270,7 +336,7 @@
       display: flex;
       flex: 1;
       min-height: 0;
-      height: calc(100vh - 57px);
+      overflow: hidden;
     }
 
     .inbox-sidebar {
@@ -371,9 +437,11 @@
       display: flex;
       gap: 0.75rem;
       padding: 0.85rem 1rem;
+      min-height: 72px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       cursor: pointer;
       transition: background 0.15s;
+      align-items: flex-start;
     }
 
     .email-item:hover { background: rgba(255, 255, 255, 0.06); }
@@ -432,8 +500,26 @@
     .email-reader {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       padding: 1.5rem 2rem;
       background: var(--glass);
+    }
+
+    .reader-back {
+      display: none;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+      padding: 0.55rem 0.85rem;
+      min-height: 44px;
+      border: 1px solid var(--glass-border);
+      border-radius: 0.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      cursor: pointer;
     }
 
     .email-reader-empty {
@@ -545,7 +631,8 @@
       background: rgba(0, 0, 0, 0.92);
       align-items: center;
       justify-content: center;
-      padding: 1rem;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+      overscroll-behavior: contain;
     }
 
     #lightbox.open { display: flex; }
@@ -559,10 +646,10 @@
 
     .lightbox-close {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
-      width: 40px;
-      height: 40px;
+      top: max(1rem, env(safe-area-inset-top));
+      right: max(1rem, env(safe-area-inset-right));
+      width: 44px;
+      height: 44px;
       border: none;
       border-radius: 50%;
       background: var(--gradient-btn);
@@ -576,22 +663,28 @@
 
     .lightbox-nav {
       position: absolute;
-      bottom: 1.5rem;
+      bottom: max(1.25rem, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 0.75rem;
+      gap: 0.5rem;
       align-items: center;
+      width: calc(100% - 2rem);
+      max-width: 360px;
+      justify-content: center;
     }
 
     .lightbox-nav button {
       border: 1px solid var(--glass-border);
       background: rgba(0, 0, 0, 0.5);
       color: #fff;
-      padding: 0.5rem 1rem;
+      padding: 0.65rem 0.85rem;
+      min-height: 44px;
       border-radius: 0.5rem;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      flex: 1;
+      max-width: 120px;
     }
 
     .lightbox-nav button:hover { background: rgba(196, 77, 255, 0.4); }
@@ -664,32 +757,117 @@
     }
 
     @media (max-width: 900px) {
+      body:not(.logged-in) {
+        align-items: flex-start;
+        overflow-y: auto;
+      }
+
+      .login-card {
+        margin: auto 0;
+        padding: 1.5rem 1.25rem;
+        border-radius: 1rem;
+      }
+
+      .login-card h1 { font-size: 1.25rem; }
+
+      .login-card .subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .field-group input,
+      .field-group input:focus {
+        font-size: 16px;
+        padding: 0.75rem 0.85rem;
+      }
+
+      .toggle-password {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .inbox-brand span { display: none; }
+
+      .inbox-brand h2 { font-size: 1rem; }
+
+      .inbox-user > span {
+        font-size: 0.72rem;
+        max-width: 9rem;
+        line-height: 1.2;
+      }
+
       .inbox-sidebar { display: none; }
-      .email-list { width: 100%; }
+
+      .mobile-filters { display: flex; }
+
+      .inbox-layout {
+        flex-direction: column;
+        height: auto;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .inbox-main {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+      }
+
+      .email-list {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .inbox-main.reader-open .email-list { display: none; }
+
       .email-reader {
         display: none;
         position: fixed;
-        inset: 57px 0 0 0;
-        z-index: 10;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        padding: 0;
+        padding-top: max(3.5rem, calc(env(safe-area-inset-top) + 2.5rem));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
       }
+
       .email-reader.open { display: block; }
-      .reader-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        margin-bottom: 1rem;
-        padding: 0.4rem 0.75rem;
-        border: 1px solid var(--glass-border);
-        border-radius: 0.5rem;
-        background: rgba(0, 0, 0, 0.3);
-        color: var(--text-main);
-        font-size: 0.8rem;
-        cursor: pointer;
+
+      .reader-back { display: inline-flex; }
+
+      .reader-header h3 { font-size: 1.15rem; }
+
+      .attachments-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
       }
+
+      .attachment-item:active { transform: scale(0.98); }
+
+      #lightbox img {
+        max-height: calc(100dvh - 8rem);
+      }
+
+      .lightbox-nav button { font-size: 0.75rem; }
+    }
+
+    @media (max-width: 380px) {
+      .inbox-user > span { display: none; }
+      .attachments-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (min-width: 901px) {
       .reader-back { display: none; }
+      .mobile-filters { display: none; }
     }
   </style>
 </head>
@@ -776,6 +954,13 @@
       </div>
     </header>
 
+    <div class="mobile-filters" id="mobile-filters">
+      <button type="button" class="filter-chip active" data-filter="all">📥 Tudo</button>
+      <button type="button" class="filter-chip" data-filter="vet">🐾 Vet</button>
+      <button type="button" class="filter-chip" data-filter="car">🚗 Carros</button>
+      <button type="button" class="filter-chip" data-filter="shawn">🎵 Shawn</button>
+    </div>
+
     <div class="inbox-layout">
       <aside class="inbox-sidebar">
         <p class="sidebar-section">Pastas</p>
@@ -817,7 +1002,7 @@
         </button>
       </aside>
 
-      <div class="inbox-main">
+      <div class="inbox-main" id="inbox-main">
         <div class="email-list">
           <div class="email-list-header">
             <span id="list-title">Caixa de entrada</span>
@@ -1071,6 +1256,10 @@
     let currentFilter = "all";
     let selectedId = null;
     let lightboxIndex = 0;
+    let navFromHistory = false;
+
+    const inboxMain = document.getElementById("inbox-main");
+    const mobileFilters = document.getElementById("mobile-filters");
 
     const FILTER_LABELS = {
       all: "Caixa de entrada",
@@ -1078,6 +1267,90 @@
       car: "Carros 🚗",
       shawn: "Shawn Mendes 🎵"
     };
+
+    function stateHash(state) {
+      if (!state || state.screen === "login") return "";
+      if (state.screen === "inbox") return "#inbox";
+      if (state.screen === "reader") return "#email/" + state.emailId;
+      if (state.screen === "lightbox") return "#lightbox/" + state.emailId + "/" + state.index;
+      return "";
+    }
+
+    function pushNav(state) {
+      history.pushState(state, "", stateHash(state) || window.location.pathname);
+    }
+
+    function replaceNav(state) {
+      history.replaceState(state, "", stateHash(state) || window.location.pathname);
+    }
+
+    function isReaderOpen() {
+      return emailReader.classList.contains("open");
+    }
+
+    function isLightboxOpen() {
+      return lightbox.classList.contains("open");
+    }
+
+    function closeReaderUI() {
+      selectedId = null;
+      readerEmpty.style.display = "flex";
+      readerContent.style.display = "none";
+      emailReader.classList.remove("open");
+      inboxMain.classList.remove("reader-open");
+      renderEmailList();
+    }
+
+    function closeLightboxUI() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImg.src = "";
+    }
+
+    function applyNavState(state) {
+      if (!state || state.screen === "login") {
+        if (document.body.classList.contains("logged-in")) {
+          closeLightboxUI();
+          closeReaderUI();
+        }
+        return;
+      }
+
+      if (state.screen === "inbox") {
+        applyInboxView(state.filter);
+        return;
+      }
+
+      if (state.screen === "reader") {
+        closeLightboxUI();
+        showReader(state.emailId, false);
+        return;
+      }
+
+      if (state.screen === "lightbox") {
+        showReader(state.emailId, false);
+        showLightbox(state.index, false);
+      }
+    }
+
+    function goBack() {
+      history.back();
+    }
+
+    window.addEventListener("popstate", function (event) {
+      navFromHistory = true;
+      applyNavState(event.state);
+      navFromHistory = false;
+    });
+
+    function bindReaderBack() {
+      const backBtn = document.getElementById("reader-back");
+      if (backBtn) {
+        backBtn.addEventListener("click", function () {
+          goBack();
+        });
+      }
+    }
 
     togglePasswordBtn.addEventListener("click", function () {
       const isHidden = passwordInput.type === "password";
@@ -1150,23 +1423,31 @@
       });
     }
 
-    function openLightbox(index) {
+    function showLightbox(index, pushHistory) {
+      if (selectedId === null) return;
       lightboxIndex = index;
       lightboxImg.src = CALL_ATTACHMENTS[index].src;
       lightboxCounter.textContent = (index + 1) + " / " + CALL_ATTACHMENTS.length;
       lightbox.classList.add("open");
       lightbox.setAttribute("aria-hidden", "false");
+      if (pushHistory !== false) {
+        pushNav({ screen: "lightbox", emailId: String(selectedId), index: index });
+      }
+    }
+
+    function openLightbox(index) {
+      showLightbox(index, true);
     }
 
     function closeLightbox() {
-      lightbox.classList.remove("open");
-      lightbox.setAttribute("aria-hidden", "true");
-      lightboxImg.src = "";
+      if (isLightboxOpen()) goBack();
     }
 
     function lightboxStep(dir) {
       lightboxIndex = (lightboxIndex + dir + CALL_ATTACHMENTS.length) % CALL_ATTACHMENTS.length;
-      openLightbox(lightboxIndex);
+      lightboxImg.src = CALL_ATTACHMENTS[lightboxIndex].src;
+      lightboxCounter.textContent = (lightboxIndex + 1) + " / " + CALL_ATTACHMENTS.length;
+      replaceNav({ screen: "lightbox", emailId: String(selectedId), index: lightboxIndex });
     }
 
     document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
@@ -1176,39 +1457,76 @@
       if (e.target === lightbox) closeLightbox();
     });
 
-    function openNotificationEmail() {
-      selectedId = "notif";
-      NOTIFICATION_EMAIL.unread = false;
-      notifBell.classList.add("read");
-      renderEmailList();
+    (function () {
+      let touchStartX = 0;
+      lightbox.addEventListener("touchstart", function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+      lightbox.addEventListener("touchend", function (e) {
+        const diff = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(diff) < 50) return;
+        if (diff < 0) lightboxStep(1);
+        else lightboxStep(-1);
+      }, { passive: true });
+    })();
 
+    function showReader(emailId, pushHistory) {
+      const id = emailId === "notif" ? "notif" : Number(emailId);
+      let html;
+
+      if (id === "notif") {
+        NOTIFICATION_EMAIL.unread = false;
+        notifBell.classList.add("read");
+        selectedId = "notif";
+        html =
+          '<button class="reader-back" id="reader-back">← Voltar</button>' +
+          '<div class="reader-header">' +
+            '<span class="reader-category cat-heart">💜 Notificação</span>' +
+            '<h3>' + NOTIFICATION_EMAIL.subject + '</h3>' +
+            '<div class="reader-meta">De: <strong>' + NOTIFICATION_EMAIL.from + '</strong> · ' + NOTIFICATION_EMAIL.date + '</div>' +
+          '</div>' +
+          renderAttachmentsHtml() +
+          renderHeartLetterHtml();
+      } else {
+        const email = EMAILS.find(function (e) { return e.id === id; });
+        if (!email) return;
+        selectedId = email.id;
+        email.unread = false;
+        html =
+          '<button class="reader-back" id="reader-back">← Voltar</button>' +
+          '<div class="reader-header">' +
+            '<span class="reader-category ' + email.catClass + '">' + email.catLabel + '</span>' +
+            '<h3>' + email.subject + '</h3>' +
+            '<div class="reader-meta">De: <strong>' + email.from + '</strong> · ' + email.date + '</div>' +
+          '</div>' +
+          '<div class="reader-cover ' + email.coverClass + '"></div>' +
+          '<div class="reader-body">' +
+            email.body.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
+          '</div>' +
+          '<div class="decor-strip">' +
+            email.chips.map(function (c) { return '<span class="decor-chip">' + c + '</span>'; }).join("") +
+          '</div>' +
+          '<div class="reader-signature">Com carinho,<br>quem fez isso pra te animar 💜</div>';
+      }
+
+      renderEmailList();
       readerEmpty.style.display = "none";
       readerContent.style.display = "block";
       emailReader.classList.add("open");
-
-      readerContent.innerHTML =
-        '<button class="reader-back" id="reader-back">← Voltar</button>' +
-        '<div class="reader-header">' +
-          '<span class="reader-category cat-heart">💜 Notificação</span>' +
-          '<h3>' + NOTIFICATION_EMAIL.subject + '</h3>' +
-          '<div class="reader-meta">De: <strong>' + NOTIFICATION_EMAIL.from + '</strong> · ' + NOTIFICATION_EMAIL.date + '</div>' +
-        '</div>' +
-        renderAttachmentsHtml() +
-        renderHeartLetterHtml();
-
+      inboxMain.classList.add("reader-open");
+      readerContent.innerHTML = html;
       bindAttachmentClicks();
-
-      const backBtn = document.getElementById("reader-back");
-      if (backBtn) {
-        backBtn.addEventListener("click", function () {
-          emailReader.classList.remove("open");
-        });
-      }
-
+      bindReaderBack();
       emailReader.scrollTop = 0;
+
+      if (pushHistory !== false) {
+        pushNav({ screen: "reader", emailId: String(id) });
+      }
     }
 
-    notifBell.addEventListener("click", openNotificationEmail);
+    function openNotificationEmail() {
+      showReader("notif", true);
+    }
 
     function renderEmailList() {
       const emails = getFilteredEmails();
@@ -1241,52 +1559,45 @@
       });
     }
 
+    notifBell.addEventListener("click", openNotificationEmail);
+
     function openEmail(id) {
-      const email = EMAILS.find(function (e) { return e.id === id; });
-      if (!email) return;
+      showReader(id, true);
+    }
 
-      selectedId = id;
-      email.unread = false;
+    function updateFilterUI() {
+      document.querySelectorAll(".sidebar-item").forEach(function (btn) {
+        btn.classList.toggle("active", btn.dataset.filter === currentFilter);
+      });
+      document.querySelectorAll(".filter-chip").forEach(function (btn) {
+        btn.classList.toggle("active", btn.dataset.filter === currentFilter);
+      });
+    }
+
+    function applyInboxView(filter) {
+      currentFilter = filter || "all";
+      updateFilterUI();
+      closeLightboxUI();
+      closeReaderUI();
       renderEmailList();
+    }
 
-      readerEmpty.style.display = "none";
-      readerContent.style.display = "block";
-      emailReader.classList.add("open");
-
-      readerContent.innerHTML =
-        '<button class="reader-back" id="reader-back">← Voltar</button>' +
-        '<div class="reader-header">' +
-          '<span class="reader-category ' + email.catClass + '">' + email.catLabel + '</span>' +
-          '<h3>' + email.subject + '</h3>' +
-          '<div class="reader-meta">De: <strong>' + email.from + '</strong> · ' + email.date + '</div>' +
-        '</div>' +
-        '<div class="reader-cover ' + email.coverClass + '"></div>' +
-        '<div class="reader-body">' +
-          email.body.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
-        '</div>' +
-        '<div class="decor-strip">' +
-          email.chips.map(function (c) { return '<span class="decor-chip">' + c + '</span>'; }).join("") +
-        '</div>' +
-        '<div class="reader-signature">Com carinho,<br>quem fez isso pra te animar 💜</div>';
-
-      const backBtn = document.getElementById("reader-back");
-      if (backBtn) {
-        backBtn.addEventListener("click", function () {
-          emailReader.classList.remove("open");
-        });
+    function setFilter(filter) {
+      applyInboxView(filter);
+      if (document.body.classList.contains("logged-in") && !navFromHistory) {
+        replaceNav({ screen: "inbox", filter: currentFilter });
       }
     }
 
     document.querySelectorAll(".sidebar-item").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        document.querySelectorAll(".sidebar-item").forEach(function (b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-        currentFilter = btn.dataset.filter;
-        selectedId = null;
-        readerEmpty.style.display = "flex";
-        readerContent.style.display = "none";
-        emailReader.classList.remove("open");
-        renderEmailList();
+        setFilter(btn.dataset.filter);
+      });
+    });
+
+    document.querySelectorAll(".filter-chip").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setFilter(btn.dataset.filter);
       });
     });
 
@@ -1294,6 +1605,7 @@
       document.body.classList.add("logged-in");
       inboxScreen.setAttribute("aria-hidden", "false");
       document.title = "Pincesa email";
+      replaceNav({ screen: "inbox", filter: "all" });
       renderEmailList();
     }
 
@@ -1316,6 +1628,8 @@
 
       onLoginSuccess();
     });
+
+    replaceNav({ screen: "login" });
   </script>
 </body>
 </html>
